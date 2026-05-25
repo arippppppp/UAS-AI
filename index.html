@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNIB Smart Navigator (Serverless)</title>
+    <title>UNIB Smart Navigator</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
-    
     <style>
         :root {
             --primary: #4f46e5;
-            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --accent: #84cc16;
+            --sidebar-bg: rgba(255, 255, 255, 0.9);
         }
 
         body { font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 0; overflow: hidden; background: #f3f4f6; }
@@ -20,54 +20,56 @@
         #nav-panel {
             position: absolute; top: 20px; left: 20px; z-index: 1000;
             background: var(--sidebar-bg); backdrop-filter: blur(12px);
-            padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.3);
-            width: 310px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.3);
+            width: 330px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        h2 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -1px; }
-        .tagline { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: block; }
+        h2 { margin: 0; font-size: 26px; font-weight: 700; color: var(--primary); letter-spacing: -1px; }
+        .tagline { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 25px; display: block; }
 
         .info-card {
             background: #eef2ff; border: 1px solid #c7d2fe;
             color: #3730a3; padding: 12px; border-radius: 12px;
-            font-size: 11px; font-weight: 500; margin-bottom: 15px; line-height: 1.4;
+            font-size: 11px; font-weight: 500; margin-bottom: 20px; line-height: 1.4;
         }
 
-        .input-box { margin-bottom: 12px; }
-        label { font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .input-box { margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; margin-bottom: 6px; display: block; }
         input { 
             width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb;
             background: white; color: #1f2937; font-family: inherit; font-size: 13px;
-            box-sizing: border-box;
+            box-sizing: border-box; transition: 0.3s;
         }
+        input:focus { border-color: var(--primary); outline: none; }
 
-        .mode-container { display: flex; gap: 10px; margin: 15px 0; }
+        .mode-container { display: flex; gap: 10px; margin: 20px 0; }
         .mode-btn {
-            flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #e5e7eb;
-            background: white; color: #4b5563; cursor: pointer; font-weight: 600; font-size: 12px;
+            flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb;
+            background: white; color: #4b5563; cursor: pointer; transition: 0.3s;
+            font-weight: 600; font-size: 12px;
         }
         .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         .btn-execute {
-            width: 100%; padding: 14px; border-radius: 12px; border: none;
+            width: 100%; padding: 15px; border-radius: 12px; border: none;
             background: var(--primary); color: white; font-weight: 700;
-            font-size: 13px; text-transform: uppercase; cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+            font-size: 14px; text-transform: uppercase; cursor: pointer;
+            transition: 0.3s; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
         }
-        .btn-execute:hover { filter: brightness(1.1); }
+        .btn-execute:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
         #btn-reset {
             width: 100%; background: none; color: #ef4444; border: 1px solid #fecaca;
-            padding: 8px; border-radius: 12px; margin-top: 8px; cursor: pointer;
-            font-family: inherit; font-size: 12px;
+            padding: 10px; border-radius: 12px; margin-top: 10px; cursor: pointer;
+            font-family: inherit; font-size: 12px; font-weight: 500;
         }
 
         #result-display {
-            margin-top: 15px; padding: 12px; border-radius: 12px;
+            margin-top: 20px; padding: 15px; border-radius: 15px;
             background: #f8fafc; border: 1px solid #e2e8f0; display: none;
             text-align: center;
         }
-        #result-display span { font-size: 24px; font-weight: 700; color: var(--primary); }
+        #result-display span { font-size: 28px; font-weight: 700; color: var(--primary); }
 
         .custom-landmark {
             background: white; border: 2px solid var(--primary); border-radius: 50%;
@@ -75,7 +77,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor: pointer;
         }
 
-        /* Menyembunyikan panel teks panduan rute bawaan Leaflet agar peta bersih */
+        /* Menyembunyikan panel rute teks default milik Leaflet Routing Machine agar tampilan UI tetap bersih */
         .leaflet-routing-container { display: none !important; }
     </style>
 </head>
@@ -85,10 +87,10 @@
 
     <div id="nav-panel">
         <h2>UNIB NAV</h2>
-        <span class="tagline">Pure GitHub Serverless Edition</span>
+        <span class="tagline">Informatics AI Project</span>
 
         <div class="info-card">
-            🚀 <b>MURNI CLIENT-SIDE:</b> Klik pada 2 ikon gedung kampus untuk langsung menggambar rute jalan aspal secara instan.
+            📍 <b>NAVIGASI AKTIF:</b> Klik ikon gedung di peta atau area jalan mana saja untuk mencari rute terpendek.
         </div>
 
         <div class="form-group">
@@ -104,22 +106,21 @@
         </div>
 
         <div class="mode-container">
-            <button class="mode-btn active" id="btn-drive" onclick="setMode('driving')">🛵 Vehicle</button>
-            <button class="mode-btn" id="btn-walk" onclick="setMode('foot')">🚶 Walking</button>
+            <button class="mode-btn active" id="btn-drive" onclick="setMode('drive')">🛵 Vehicle</button>
+            <button class="mode-btn" id="btn-walk" onclick="setMode('walk')">🚶 Walking</button>
         </div>
 
         <button class="btn-execute" id="btn-action" onclick="cariRute()">Execute Path</button>
         <button id="btn-reset" onclick="resetPoints()">Reset Engine</button>
         
         <div id="result-display">
-            <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Jarak Lintasan</div>
-            <span id="distance-text">0</span> <small style="color: #64748b;">Meter</small>
+            <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Distance</div>
+            <span id="distance-text">0</span> <small style="color: #64748b;">Meters</small>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    
     <script>
         let map = L.map('map', {zoomControl: false}).setView([-3.7580, 102.2715], 16);
         L.control.zoom({position: 'bottomright'}).addTo(map);
@@ -128,7 +129,6 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // KOORDINAT AKURAT PADA JALUR JALAN KAMPUS UNIB
         const unibLandmarks = [
             { name: "Gerbang Utama Depan", lat: -3.759976, lng: 102.267067, icon: '🚪' },
             { name: "Rektorat UNIB", lat: -3.759259, lng: 102.272297, icon: '🏢' },
@@ -155,7 +155,6 @@
             { name: "Gedung R (UPT Bahasa)", lat: -3.760704, lng: 102.270355, icon: '🔠' }
         ];
 
-        // Memasang marker lokasi ke peta
         unibLandmarks.forEach(place => {
             let customIcon = L.divIcon({
                 className: 'custom-landmark',
@@ -163,103 +162,127 @@
                 iconSize: [28, 28]
             });
 
-            let marker = L.marker([place.lat, place.lng], { icon: customIcon }).addTo(map);
+            let marker = L.marker([place.lat, place.lng], { 
+                icon: customIcon, 
+                draggable: false 
+            }).addTo(map);
+            
             marker.on('click', function(e) {
-                L.DomEvent.stopPropagation(e);
+                L.DomEvent.stopPropagation(e); // Mencegah trigger double-click di peta dasar
                 handleLocationSelection(marker.getLatLng().lat, marker.getLatLng().lng, place.name);
             });
         });
 
-        let currentMode = 'driving'; // Pilihan profile OSRM: 'driving' atau 'foot'
+        let currentMode = 'drive';
         let routingControl = null;
+        let markerStart = null;
+        let markerEnd = null;
         let startCoord = null;
         let endCoord = null;
         let clickStep = 'start';
-        let pointMarkers = [];
 
-        function handleLocationSelection(lat, lng, placeName) {
+        async function getPlaceName(lat, lng) {
+            try {
+                let res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18`);
+                let data = await res.json();
+                return data.name || data.display_name.split(',')[0] || "Custom Location";
+            } catch (error) { return "Koordinat: " + lat.toFixed(4); }
+        }
+
+        async function handleLocationSelection(lat, lng, predefinedName = null) {
+            let placeName = predefinedName;
+
             if(clickStep === 'start') {
                 startCoord = L.latLng(lat, lng);
-                clearRouteLayer();
                 
-                let m = L.circleMarker([lat, lng], { color: '#4f46e5', radius: 7, fillOpacity: 0.9 }).addTo(map);
-                pointMarkers.push(m);
-                document.getElementById('input-start').value = placeName || `Koordinat: ${lat.toFixed(4)}`;
+                // Reset rute lama jika mengganti titik start baru
+                if(markerStart) map.removeLayer(markerStart);
+                if(routingControl) {
+                    map.removeControl(routingControl);
+                    routingControl = null;
+                }
+                document.getElementById('result-display').style.display = 'none';
+                
+                document.getElementById('input-start').value = "Locating...";
+                if(!placeName) placeName = await getPlaceName(lat, lng);
+                
+                markerStart = L.circleMarker([lat, lng], { color: '#4f46e5', radius: 8, fillOpacity: 0.8 }).addTo(map).bindPopup("Starting Point");
+                document.getElementById('input-start').value = placeName;
                 
                 clickStep = 'end';
             } 
             else if (clickStep === 'end') {
                 endCoord = L.latLng(lat, lng);
+                if(markerEnd) map.removeLayer(markerEnd);
                 
-                let m = L.circleMarker([lat, lng], { color: '#ef4444', radius: 7, fillOpacity: 0.9 }).addTo(map);
-                pointMarkers.push(m);
-                document.getElementById('input-end').value = placeName || `Koordinat: ${lat.toFixed(4)}`;
+                document.getElementById('input-end').value = "Locating...";
+                if(!placeName) placeName = await getPlaceName(lat, lng);
+                
+                markerEnd = L.circleMarker([lat, lng], { color: '#ef4444', radius: 8, fillOpacity: 0.8 }).addTo(map).bindPopup("Goal Point");
+                document.getElementById('input-end').value = placeName;
                 
                 clickStep = 'done';
             }
         }
 
-        // Mengizinkan user mengklik sembarang tempat di area jalan peta
-        map.on('click', function(e) { 
-            handleLocationSelection(e.latlng.lat, e.latlng.lng); 
-        });
+        map.on('click', function(e) { handleLocationSelection(e.latlng.lat, e.latlng.lng); });
+
+        function resetPoints() { location.reload(); }
 
         function setMode(mode) {
             currentMode = mode;
-            document.getElementById('btn-drive').classList.toggle('active', mode === 'driving');
-            document.getElementById('btn-walk').classList.toggle('active', mode === 'foot');
-            if (startCoord && endCoord) cariRute(); 
+            document.getElementById('btn-drive').classList.toggle('active', mode === 'drive');
+            document.getElementById('btn-walk').classList.toggle('active', mode === 'walk');
+            // Jika rute sudah digambar, otomatis update rute ketika berpindah mode berkendara/jalan kaki
+            if (startCoord && endCoord && clickStep === 'done') cariRute();
         }
 
-        function clearRouteLayer() {
-            if (routingControl) {
-                map.removeControl(routingControl);
-                routingControl = null;
-            }
-            pointMarkers.forEach(m => map.removeLayer(m));
-            pointMarkers = [];
-            document.getElementById('result-display').style.display = 'none';
-        }
-
-        function resetPoints() {
-            startCoord = null;
-            endCoord = null;
-            clickStep = 'start';
-            document.getElementById('input-start').value = "";
-            document.getElementById('input-end').value = "";
-            clearRouteLayer();
-        }
-
-        // FUNGSI UTAMA GENERATE RUTE JALAN SECARA CLIENT-SIDE (MURNI JAVASCRIPT)
         function cariRute() {
-            if(!startCoord || !endCoord) return alert("Pilih titik awal dan tujuan terlebih dahulu!");
+            if(!startCoord || !endCoord) return alert("Pilih titik awal dan tujuan!");
             
+            let btn = document.getElementById('btn-action');
+            btn.innerText = "Processing AI...";
+            btn.disabled = true;
+
+            // Hapus routing layer lama jika ada sebelum membuat rute baru
             if (routingControl) map.removeControl(routingControl);
 
-            // Memanggil API publik router OSRM yang terintegrasi dengan data peta jalan OpenStreetMap
+            // Konversi profile parameter dari UI ke format resmi OSRM API
+            let osrmProfile = (currentMode === 'walk') ? 'foot' : 'driving';
+
             routingControl = L.Routing.control({
                 waypoints: [startCoord, endCoord],
                 router: L.Routing.osrmv1({
                     serviceUrl: `https://router.project-osrm.org/route/v1`,
-                    profile: currentMode
+                    profile: osrmProfile
                 }),
                 lineOptions: {
                     styles: [{ color: '#4f46e5', opacity: 0.8, weight: 6 }]
                 },
-                createMarker: function() { return null; } // Menghilangkan marker default routing machine yang jelek
+                createMarker: function() { return null; } // Menyembunyikan marker balon hitam bawaan Leaflet Routing
             }).addTo(map);
 
-            // Event handler untuk menangkap data hasil rute jika sukses
+            // Event handler ketika rute berhasil ditarik oleh sistem OSRM
             routingControl.on('routesfound', function(e) {
                 let routes = e.routes;
                 let summary = routes[0].summary;
                 
                 document.getElementById('result-display').style.display = 'block';
                 document.getElementById('distance-text').innerText = Math.round(summary.totalDistance);
+                
+                // Menyesuaikan zoom peta secara otomatis agar seluruh jalur terlihat di layar
+                let bounds = L.latLngBounds(startCoord, endCoord);
+                map.fitBounds(bounds, {padding: [80, 80]});
+
+                btn.innerText = "Execute Path";
+                btn.disabled = false;
             });
 
+            // Event handler jika rute jalan gagal ditemukan atau terputus
             routingControl.on('routingerror', function() {
-                alert("Gagal menemukan jalur jalan yang terhubung antara kedua titik tersebut.");
+                alert("Gagal menemukan jalur jalan resmi antara kedua titik tersebut.");
+                btn.innerText = "Execute Path";
+                btn.disabled = false;
             });
         }
     </script>
