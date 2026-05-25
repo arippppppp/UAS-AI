@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNIB Smart Navigator</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #4f46e5;
-            --accent: #84cc16;
+            --accent: #84cc16;=
             --sidebar-bg: rgba(255, 255, 255, 0.9);
         }
 
@@ -86,7 +86,7 @@
         <span class="tagline">Informatics AI Project</span>
 
         <div class="info-card">
-            📍 <b>NAVIGASI AKTIF:</b> Klik ikon gedung pada peta untuk memilih rute aspal yang presisi.
+            📍 <b>NAVIGASI AKTIF:</b> Klik ikon gedung di peta atau area jalan mana saja untuk mencari rute terpendek.
         </div>
 
         <div class="form-group">
@@ -124,31 +124,31 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // DATA KOORDINAT 23 GEDUNG YANG SUDAH DIKALIBRASI PAS DI SISI JALAN UTAMA
+        // KOORDINAT FINAL YANG SUDAH KAMU KALIBRASI
         const unibLandmarks = [
             { name: "Gerbang Utama Depan", lat: -3.759976, lng: 102.267067, icon: '🚪' },
+            { name: "Rektorat UNIB", lat: -3.759259, lng: 102.272297, icon: '🏢' },
+            { name: "Perpustakaan UNIB", lat: -3.756770, lng: 102.274770, icon: '📚' },
+            { name: "Danau UNIB", lat: -3.758740, lng: 102.273145, icon: '🌊' },
+            { name: "Gedung Serba Guna (GSG)", lat: -3.757773, lng: 102.276562, icon: '🎪' },
+            { name: "Layanan Terpadu", lat: -3.758146, lng: 102.271847, icon: '🏛️' },
+            { name: "Stadion UNIB", lat: -3.757713, lng: 102.278158, icon: '⚽' }, 
             { name: "Lapangan Basket", lat: -3.759409, lng: 102.267373, icon: '🏀' },
             { name: "GOR UNIB", lat: -3.760455, lng: 102.267812, icon: '🏟️' },
-            { name: "Fakultas Ekonomi Bisnis", lat: -3.761350, lng: 102.268413, icon: '📈' },
-            { name: "Magister Akuntansi", lat: -3.761400, lng: 102.269030, icon: '📊' },
-            { name: "Magister Manajemen", lat: -3.761000, lng: 102.269561, icon: '💼' },
-            { name: "Gedung K UNIB", lat: -3.760900, lng: 102.269867, icon: '🏫' },
-            { name: "Gedung R (UPT Bahasa)", lat: -3.760500, lng: 102.270355, icon: '🔠' },
-            { name: "Dekanat Fak. Hukum", lat: -3.760300, lng: 102.268317, icon: '⚖️' },
-            { name: "Perpus Hukum", lat: -3.759650, lng: 102.268317, icon: '📖' },
-            { name: "Dekanat Pertanian", lat: -3.759300, lng: 102.269138, icon: '🌾' },
-            { name: "Gedung A UNIB", lat: -3.758200, lng: 102.267748, icon: '🅰️' },
-            { name: "Layanan Terpadu", lat: -3.758350, lng: 102.271847, icon: '🏛️' },
-            { name: "Rektorat UNIB", lat: -3.759000, lng: 102.272297, icon: '🏢' },
-            { name: "GB 1 UNIB", lat: -3.757600, lng: 102.273735, icon: '🏫' },
-            { name: "Danau UNIB", lat: -3.758500, lng: 102.273145, icon: '🌊' },
-            { name: "Perpustakaan UNIB", lat: -3.756900, lng: 102.274770, icon: '📚' },
-            { name: "Dekanat FMIPA", lat: -3.756200, lng: 102.274824, icon: '🔬' },
-            { name: "Dekanat FKIP", lat: -3.757500, lng: 102.275071, icon: '🎓' },
-            { name: "GB 5 UNIB", lat: -3.755600, lng: 102.276406, icon: '🏢' },
-            { name: "Gedung Serba Guna (GSG)", lat: -3.757850, lng: 102.276562, icon: '🎪' },
-            { name: "Dekanat Teknik", lat: -3.758450, lng: 102.276675, icon: '⚙️' },
-            { name: "Stadion UNIB", lat: -3.757800, lng: 102.278158, icon: '⚽' }
+            { name: "Fakultas Ekonomi Bisnis", lat: -3.761571, lng: 102.268413, icon: '📈' },
+            { name: "Magister Akuntansi", lat: -3.761577, lng: 102.269030, icon: '📊' },
+            { name: "Magister Manajemen", lat: -3.761170, lng: 102.269561, icon: '💼' },
+            { name: "Dekanat Fak. Hukum", lat: -3.760561, lng: 102.268317, icon: '⚖️' },
+            { name: "Perpus Hukum", lat: -3.759805, lng: 102.268317, icon: '📖' },
+            { name: "Dekanat Pertanian", lat: -3.759564, lng: 102.269138, icon: '🌾' },
+            { name: "Gedung A UNIB", lat: -3.758049, lng: 102.267748, icon: '🅰️' },
+            { name: "Dekanat FMIPA", lat: -3.756004, lng: 102.274824, icon: '🔬' },
+            { name: "Dekanat FKIP", lat: -3.757648, lng: 102.275071, icon: '🎓' },
+            { name: "Dekanat Teknik", lat: -3.758595, lng: 102.276675, icon: '⚙️' },
+            { name: "GB 5 UNIB", lat: -3.755421, lng: 102.276406, icon: '🏢' },
+            { name: "GB 1 UNIB", lat: -3.757482, lng: 102.273735, icon: '🏫' },
+            { name: "Gedung K UNIB", lat: -3.761149, lng: 102.269867, icon: '🏫' },
+            { name: "Gedung R (UPT Bahasa)", lat: -3.760704, lng: 102.270355, icon: '🔠' }
         ];
 
         unibLandmarks.forEach(place => {
@@ -158,11 +158,15 @@
                 iconSize: [28, 28]
             });
 
-            L.marker([place.lat, place.lng], { icon: customIcon, draggable: false })
-             .addTo(map)
-             .on('click', function() {
-                 handleLocationSelection(place.lat, place.lng, place.name);
-             });
+            // draggable diubah jadi FALSE agar permanent
+            let marker = L.marker([place.lat, place.lng], { 
+                icon: customIcon, 
+                draggable: false 
+            }).addTo(map);
+            
+            marker.on('click', function() {
+                handleLocationSelection(marker.getLatLng().lat, marker.getLatLng().lng, place.name);
+            });
         });
 
         let currentMode = 'drive';
@@ -173,14 +177,27 @@
         let endCoord = null;
         let clickStep = 'start';
 
-        function handleLocationSelection(lat, lng, placeName) {
+        async function getPlaceName(lat, lng) {
+            try {
+                let res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18`);
+                let data = await res.json();
+                return data.name || data.display_name.split(',')[0] || "Custom Location";
+            } catch (error) { return "Coordinat: " + lat.toFixed(4); }
+        }
+
+        async function handleLocationSelection(lat, lng, predefinedName = null) {
+            let placeName = predefinedName;
+
             if(clickStep === 'start') {
                 startCoord = [lat, lng];
                 if(markerStart) map.removeLayer(markerStart);
                 if(routeLayer) map.removeLayer(routeLayer);
                 document.getElementById('result-display').style.display = 'none';
                 
-                markerStart = L.circleMarker([lat, lng], { color: '#4f46e5', radius: 8, fillOpacity: 0.8 }).addTo(map);
+                document.getElementById('input-start').value = "Locating...";
+                if(!placeName) placeName = await getPlaceName(lat, lng);
+                
+                markerStart = L.circleMarker([lat, lng], { color: '#4f46e5', radius: 8, fillOpacity: 0.8 }).addTo(map).bindPopup("Starting Point");
                 document.getElementById('input-start').value = placeName;
                 
                 clickStep = 'end';
@@ -189,24 +206,19 @@
                 endCoord = [lat, lng];
                 if(markerEnd) map.removeLayer(markerEnd);
                 
-                markerEnd = L.circleMarker([lat, lng], { color: '#ef4444', radius: 8, fillOpacity: 0.8 }).addTo(map);
+                document.getElementById('input-end').value = "Locating...";
+                if(!placeName) placeName = await getPlaceName(lat, lng);
+                
+                markerEnd = L.circleMarker([lat, lng], { color: '#ef4444', radius: 8, fillOpacity: 0.8 }).addTo(map).bindPopup("Goal Point");
                 document.getElementById('input-end').value = placeName;
                 
                 clickStep = 'done';
             }
         }
 
-        function resetPoints() {
-            startCoord = null;
-            endCoord = null;
-            clickStep = 'start';
-            document.getElementById('input-start').value = "";
-            document.getElementById('input-end').value = "";
-            document.getElementById('result-display').style.display = 'none';
-            if(markerStart) map.removeLayer(markerStart);
-            if(markerEnd) map.removeLayer(markerEnd);
-            if(routeLayer) map.removeLayer(routeLayer);
-        }
+        map.on('click', function(e) { handleLocationSelection(e.latlng.lat, e.latlng.lng); });
+
+        function resetPoints() { location.reload(); }
 
         function setMode(mode) {
             currentMode = mode;
@@ -215,14 +227,13 @@
         }
 
         async function cariRute() {
-            if(!startCoord || !endCoord) return alert("Pilih titik awal dan tujuan terlebih dahulu!");
+            if(!startCoord || !endCoord) return alert("Pilih titik awal dan tujuan!");
             let btn = document.getElementById('btn-action');
             btn.innerText = "Processing AI...";
             btn.disabled = true;
 
             try {
-                // Menembak alamat backend lokal Flask
-                let response = await fetch('http://127.0.0.1:5000/cari_rute', {
+                let response = await fetch('/cari_rute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ start: startCoord, end: endCoord, mode: currentMode })
@@ -235,12 +246,8 @@
                     map.fitBounds(routeLayer.getBounds(), {padding: [50, 50]});
                     document.getElementById('result-display').style.display = 'block';
                     document.getElementById('distance-text').innerText = result.distance;
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) { 
-                alert("Gagal terhubung ke backend Flask. Pastikan Python app.py sudah kamu run!"); 
-            }
+                } else alert(result.message);
+            } catch (error) { alert("Backend Connection Error"); }
             btn.innerText = "Execute Path";
             btn.disabled = false;
         }
