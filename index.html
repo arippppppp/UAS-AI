@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIB Smart Navigator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --accent: #84cc16;
+            --sidebar-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body { font-family: 'Space Grotesk', sans-serif; margin: 0; padding: 0; overflow: hidden; background: #f3f4f6; }
+        #map { width: 100vw; height: 100vh; position: absolute; z-index: 1; }
+        
+        #nav-panel {
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            background: var(--sidebar-bg); backdrop-filter: blur(12px);
+            padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.3);
+            width: 330px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 { margin: 0; font-size: 26px; font-weight: 700; color: var(--primary); letter-spacing: -1px; }
+        .tagline { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 25px; display: block; }
+
+        .info-card {
+            background: #eef2ff; border: 1px solid #c7d2fe;
+            color: #3730a3; padding: 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 500; margin-bottom: 20px; line-height: 1.4;
+        }
+
+        .input-box { margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: 700; color: #374151; text-transform: uppercase; margin-bottom: 6px; display: block; }
+        input { 
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb;
+            background: white; color: #1f2937; font-family: inherit; font-size: 13px;
+            box-sizing: border-box; transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        .mode-container { display: flex; gap: 10px; margin: 20px 0; }
+        .mode-btn {
+            flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb;
+            background: white; color: #4b5563; cursor: pointer; transition: 0.3s;
+            font-weight: 600; font-size: 12px;
+        }
+        .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .btn-execute {
+            width: 100%; padding: 15px; border-radius: 12px; border: none;
+            background: var(--primary); color: white; font-weight: 700;
+            font-size: 14px; text-transform: uppercase; cursor: pointer;
+            transition: 0.3s; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+        .btn-execute:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        #btn-reset {
+            width: 100%; background: none; color: #ef4444; border: 1px solid #fecaca;
+            padding: 10px; border-radius: 12px; margin-top: 10px; cursor: pointer;
+            font-family: inherit; font-size: 12px; font-weight: 500;
+        }
+
+        #result-display {
+            margin-top: 20px; padding: 15px; border-radius: 15px;
+            background: #f8fafc; border: 1px solid #e2e8f0; display: none;
+            text-align: center;
+        }
+        #result-display span { font-size: 28px; font-weight: 700; color: var(--primary); }
+
+        .custom-landmark {
+            background: white; border: 2px solid var(--primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="nav-panel">
+        <h2>UNIB NAV</h2>
+        <span class="tagline">Informatics AI Project</span>
+
+        <div class="info-card">
+            📍 <b>NAVIGASI AKTIF:</b> Klik ikon gedung di peta untuk mencari rute terpendek secara instan.
+        </div>
+
+        <div class="form-group">
+            <div class="input-box">
+                <label>Starting Point</label>
+                <input type="text" id="input-start" readonly placeholder="Waiting for selection..." />
+            </div>
+
+            <div class="input-box">
+                <label>Target Goal</label>
+                <input type="text" id="input-end" readonly placeholder="Waiting for selection..." />
+            </div>
+        </div>
+
+        <div class="mode-container">
+            <button class="mode-btn active" id="btn-drive" onclick="setMode('drive')">🛵 Vehicle</button>
+            <button class="mode-btn" id="btn-walk" onclick="setMode('walk')">🚶 Walking</button>
+        </div>
+
+        <button class="btn-execute" id="btn-action" onclick="cariRute()">Execute Path</button>
+        <button id="btn-reset" onclick="resetPoints()">Reset Engine</button>
+        
+        <div id="result-display">
+            <div style="font-size: 10px; color: #64748b; text-transform: uppercase;">Total Distance</div>
+            <span id="distance-text">0</span> <small style="color: #64748b;">Meters</small>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map', {zoomControl: false}).setView([-3.7580, 102.2715], 16);
+        L.control.zoom({position: 'bottomright'}).addTo(map);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // KOORDINAT FINAL MILIKMU (TETAP AMAN & LENGKAP)
+        const unibLandmarks = [
+            { id: "gerbang", name: "Gerbang Utama Depan", lat: -3.759976, lng: 102.267067, icon: '🚪' },
+            { id: "rektorat", name: "Rektorat UNIB", lat: -3.759259, lng: 102.272297, icon: '🏢' },
+            { id: "perpus", name: "Perpustakaan UNIB", lat: -3.756770, lng: 102.274770, icon: '📚' },
+            { id: "danau", name: "Danau UNIB", lat: -3.758740, lng: 102.273145, icon: '🌊' },
+            { id: "gsg", name: "Gedung Serba Guna (GSG)", lat: -3.757773, lng: 102.276562, icon: '🎪' },
+            { id: "layanan_terpadu", name: "Layanan Terpadu", lat: -3.758146, lng: 102.271847, icon: '🏛️' },
+            { id: "stadion", name: "Stadion UNIB", lat: -3.757713, lng: 102.278158, icon: '⚽' }, 
+            { id: "lap_basket", name: "Lapangan Basket", lat: -3.759409, lng: 102.267373, icon: '🏀' },
+            { id: "gor", name: "GOR UNIB", lat: -3.760455, lng: 102.267812, icon: '🏟️' },
+            { id: "feb", name: "Fakultas Ekonomi Bisnis", lat: -3.761571, lng: 102.268413, icon: '📈' },
+            { id: "magister_akutansi", name: "Magister Akuntansi", lat: -3.761577, lng: 102.269030, icon: '📊' },
+            { id: "magister_manajemen", name: "Magister Manajemen", lat: -3.761170, lng: 102.269561, icon: '💼' },
+            { id: "dekanat_hukum", name: "Dekanat Fak. Hukum", lat: -3.760561, lng: 102.268317, icon: '⚖️' },
+            { id: "perpus_hukum", name: "Perpus Hukum", lat: -3.759805, lng: 102.268317, icon: '📖' },
+            { id: "dekanat_pertanian", name: "Dekanat Pertanian", lat: -3.759564, lng: 102.269138, icon: '🌾' },
+            { id: "gedung_a", name: "Gedung A UNIB", lat: -3.758049, lng: 102.267748, icon: '🅰️' },
+            { id: "fmipa", name: "Dekanat FMIPA", lat: -3.756004, lng: 102.274824, icon: '🔬' },
+            { id: "fkip", name: "Dekanat FKIP", lat: -3.757648, lng: 102.275071, icon: '🎓' },
+            { id: "teknik", name: "Dekanat Teknik", lat: -3.758595, lng: 102.276675, icon: '⚙️' },
+            { id: "gb5", name: "GB 5 UNIB", lat: -3.755421, lng: 102.276406, icon: '🏢' },
+            { id: "gb1", name: "GB 1 UNIB", lat: -3.757482, lng: 102.273735, icon: '🏫' },
+            { id: "gedung_k", name: "Gedung K UNIB", lat: -3.761149, lng: 102.269867, icon: '🏫' },
+            { id: "gedung_r", name: "Gedung R (UPT Bahasa)", lat: -3.760704, lng: 102.270355, icon: '🔠' }
+        ];
+
+        // MAPPING REPRESTASI GRAPH JALUR HUBUNGAN ANTAR GEDUNG (Bobot Jarak dalam Meter)
+        const graphJalan = {
+            "gerbang": { "lap_basket": 70, "gor": 100, "gedung_a": 220 },
+            "lap_basket": { "gerbang": 70, "gor": 120, "perpus_hukum": 110 },
+            "gor": { "gerbang": 100, "lap_basket": 120, "dekanat_hukum": 65 },
+            "dekanat_hukum": { "gor": 65, "feb": 110, "perpus_hukum": 85 },
+            "perpus_hukum": { "lap_basket": 110, "dekanat_hukum": 85, "dekanat_pertanian": 95 },
+            "feb": { "dekanat_hukum": 110, "magister_akutansi": 70 },
+            "magister_akutansi": { "feb": 70, "magister_manajemen": 70 },
+            "magister_manajemen": { "magister_akutansi": 70, "gedung_k": 40 },
+            "gedung_k": { "magister_manajemen": 40, "gedung_r": 70, "dekanat_pertanian": 190 },
+            "gedung_r": { "gedung_k": 70, "layanan_terpadu": 320 },
+            "dekanat_pertanian": { "perpus_hukum": 95, "gedung_k": 190, "layanan_terpadu": 330 },
+            "gedung_a": { "gerbang": 220, "layanan_terpadu": 450 },
+            "layanan_terpadu": { "gedung_a": 450, "dekanat_pertanian": 330, "gedung_r": 320, "rektorat": 130, "gb1": 220 },
+            "rektorat": { "layanan_terpadu": 130, "danau": 110 },
+            "danau": { "rektorat": 110, "gb1": 150, "perpus": 280, "fkip": 240 },
+            "gb1": { "layanan_terpadu": 220, "danau": 150, "perpus": 140 },
+            "perpus": { "gb1": 140, "danau": 280, "fmipa": 90, "fkip": 100 },
+            "fmipa": { "perpus": 90, "gb5": 160 },
+            "fkip": { "perpus": 100, "danau": 240, "gsg": 170 },
+            "gb5": { "fmipa": 160, "gsg": 260 },
+            "gsg": { "fkip": 170, "gb5": 260, "teknik": 90, "stadion": 180 },
+            "teknik": { "gsg": 90, "stadion": 190 },
+            "stadion": { "gsg": 180, "teknik": 190 }
+        };
+
+        unibLandmarks.forEach(place => {
+            let customIcon = L.divIcon({
+                className: 'custom-landmark',
+                html: place.icon,
+                iconSize: [28, 28]
+            });
+
+            let marker = L.marker([place.lat, place.lng], { 
+                icon: customIcon, 
+                draggable: false 
+            }).addTo(map);
+            
+            marker.on('click', function() {
+                handleLocationSelection(place.id, place.name);
+            });
+        });
+
+        let currentMode = 'drive';
+        let routeLayer = null;
+        let startNodeId = null;
+        let endNodeId = null;
+        let clickStep = 'start';
+
+        function handleLocationSelection(nodeId, name) {
+            if(clickStep === 'start') {
+                startNodeId = nodeId;
+                if(routeLayer) map.removeLayer(routeLayer);
+                document.getElementById('result-display').style.display = 'none';
+                
+                document.getElementById('input-start').value = name;
+                clickStep = 'end';
+            } 
+            else if (clickStep === 'end') {
+                endNodeId = nodeId;
+                document.getElementById('input-end').value = name;
+                clickStep = 'done';
+            }
+        }
+
+        function resetPoints() {
+            startNodeId = null;
+            endNodeId = null;
+            clickStep = 'start';
+            document.getElementById('input-start').value = "";
+            document.getElementById('input-end').value = "";
+            document.getElementById('result-display').style.display = 'none';
+            if(routeLayer) map.removeLayer(routeLayer);
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-drive').classList.toggle('active', mode === 'drive');
+            document.getElementById('btn-walk').classList.toggle('active', mode === 'walk');
+        }
+
+        // ALGORITMA DIJKSTRA PURE JAVASCRIPT
+        function hitungDijkstra(graph, start, end) {
+            let distances = {};
+            let prev = {};
+            let nodes = new Set();
+
+            for (let node in graph) {
+                distances[node] = Infinity;
+                prev[node] = null;
+                nodes.add(node);
+            }
+            distances[start] = 0;
+
+            while (nodes.size > 0) {
+                let closestNode = null;
+                for (let node of nodes) {
+                    if (closestNode === null || distances[node] < distances[closestNode]) {
+                        closestNode = node;
+                    }
+                }
+
+                if (closestNode === end || distances[closestNode] === Infinity) break;
+                nodes.delete(closestNode);
+
+                for (let neighbor in graph[closestNode]) {
+                    let distanceModifier = graph[closestNode][neighbor];
+                    
+                    // Modifikasi bobot kecil jika memilih mode jalan kaki (simulasi rute alternatif)
+                    if (currentMode === 'walk') {
+                        distanceModifier = distanceModifier * 0.95;
+                    }
+
+                    let alt = distances[closestNode] + distanceModifier;
+                    if (alt < distances[neighbor]) {
+                        distances[neighbor] = alt;
+                        prev[neighbor] = closestNode;
+                    }
+                }
+            }
+
+            let path = [];
+            let u = end;
+            while (u !== null) {
+                path.unshift(u);
+                u = prev[u];
+            }
+            return { ruteNode: path, totalJarak: Math.round(distances[end]) };
+        }
+
+        function cariRute() {
+            if(!startNodeId || !endNodeId) return alert("Pilih titik awal dan tujuan terlebih dahulu dengan mengklik ikon map!");
+            
+            let btn = document.getElementById('btn-action');
+            btn.innerText = "Processing AI...";
+            btn.disabled = true;
+
+            // Hitung jalur terpendek langsung di komputer klien
+            let hasil = hitungDijkstra(graphJalan, startNodeId, endNodeId);
+
+            if(hasil.totalJarak === Infinity || hasil.ruteNode.length <= 1) {
+                alert("Jalur tidak ditemukan atau koordinat graph terputus!");
+                btn.innerText = "Execute Path";
+                btn.disabled = false;
+                return;
+            }
+
+            // Ambil koordinat Lat & Lng berdasarkan urutan penemuan rute node Dijkstra
+            let kordinatGaris = hasil.ruteNode.map(nodeId => {
+                let gedung = unibLandmarks.find(l => l.id === nodeId);
+                return [gedung.lat, gedung.lng];
+            });
+
+            if(routeLayer) map.removeLayer(routeLayer);
+            
+            // Gambar Garis Polyline rute di peta Leaflet
+            routeLayer = L.polyline(kordinatGaris, {color: '#4f46e5', weight: 6, opacity: 0.8, lineJoin: 'round'}).addTo(map);
+            map.fitBounds(routeLayer.getBounds(), {padding: [50, 50]});
+            
+            document.getElementById('result-display').style.display = 'block';
+            document.getElementById('distance-text').innerText = hasil.totalJarak;
+
+            btn.innerText = "Execute Path";
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
